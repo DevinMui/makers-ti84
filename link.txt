@@ -1,0 +1,14 @@
+""→Str1
+While (1)
+::Input "Message: ",Str1
+::If (length(Str1)>1):Then
+::::Send(Str1)
+::::Disp "Your message: "
+::::Disp Str1
+::::Get(Str1)
+::::Disp "Their message: "
+::::Disp Str1
+::End
+::""→Str1
+End
+
