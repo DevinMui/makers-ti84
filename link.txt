@@ -1,14 +1,43 @@
+" Get names
+Input "Your Name: ",Str1
+"0"+Str1→Str1
+Send(Str1)
+Input "Recipient Name: ",Str1
+Str1→Str3
+"1"+Str1→Str1
+Send(Str1)
 ""→Str1
+""→Str2
+Disp "OK"
+
+" Input loop to check for new messages
 While (1)
-::Input "Message: ",Str1
-::If (length(Str1)>1):Then
-::::Send(Str1)
-::::Disp "Your message: "
-::::Disp Str1
+" Wait for Enter
+::Repeat K=105
 ::::Get(Str1)
-::::Disp "Their message: "
-::::Disp Str1
+" String comps are weird
+::::If (length(Str1)=length(Str2) and length(Str1)>0):Then
+::::::If (Str1≠Str2):Then
+::::::::Str3+": "+Str1→Str4
+::::::::Disp Str4
+::::::::Str1→Str2
+:::::::End
+::::Else
+::::::If (length(Str1)>0):Then
+::::::::Str3+": "+Str1→Str4
+::::::::Disp Str4
+::::::::Str1→Str2
+::::::End
+::::End
+::::getKey→K
+" Delay/wait 0.1s
+::::rand(10)
 ::End
+
+::Input "Message: ",Str1
+::"You: "+Str1→Str4
+::"2"+Str1→Str1
+::Send(Str1)
+::Disp Str4
 ::""→Str1
 End
-

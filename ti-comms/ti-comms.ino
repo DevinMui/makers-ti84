@@ -1,13 +1,7 @@
-/*************************************************
- *  HelloWorld.ino                               *
- *  Example from the ArTICL library              *
- *           Created by Alex Cordonnier, 2017    *
- *                                               *
- *  Use Get(Str1) to request a string from the   *
- *  Arduino. Use Send(Str1) to send a string to  *
- *  the Arduino.                                 *
- *************************************************/
-
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include "credentials.h"
+#include "json.h"
 #include "CBL2.h"
 #include "TIVar.h"
 
@@ -15,6 +9,7 @@ CBL2 cbl;
 const int lineRed = DEFAULT_TIP;
 const int lineWhite = DEFAULT_RING;
 
+#define URL "http://f9e17b4a5712.ngrok.io"
 #define MAXDATALEN 255
 
 uint8_t header[16];
@@ -25,14 +20,32 @@ int onReceived(uint8_t type, enum Endpoint model, int datalen);
 int onRequest(uint8_t type, enum Endpoint model, int* headerlen,
               int* datalen, data_callback* data_callback);
 
+// im bad with variable names
+String myName = "";
+String otherName = "";
+
 void setup() {
     Serial.begin(115200);
-    Serial.setTimeout(500);
-    Serial.println("Opened serial");
+
+    // setup WiFi
+
+    WiFi.begin(WIFI_NAME, WIFI_PASS);
+    Serial.println();
+    Serial.print("Connecting");
+    while(WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print(".");
+    }
+    Serial.println();
+    Serial.print("Connected at ");
+    Serial.println(WiFi.localIP());
+
+    sendMsg("devin", "some", "hello!");
+    Serial.println(getMsg("devin", "some"));
+    
     // set up connection with the TI 84
     cbl.setLines(lineRed, lineWhite);
     cbl.resetLines();
-//    cbl.setVerbosity(true, &Serial);      // Comment this in for message information
     // tell the lib to send data to functions
     cbl.setupCallbacks(header, data, MAXDATALEN, onReceived, onRequest);
 }
@@ -42,6 +55,7 @@ void loop() {
 }
 
 // receive data from the TI 84 through string variable changes
+// Send
 int onReceived(uint8_t type, enum Endpoint model, int datalen) {
     if (type != VarTypes82::VarString) {
         Serial.println("Received invalid data type");
@@ -50,11 +64,30 @@ int onReceived(uint8_t type, enum Endpoint model, int datalen) {
 
     String str = TIVar::strVarToString8x(data, model);
     Serial.println(str.c_str());
-    // do stuff with the data
+    
+    // check which one
+    switch(str[0]) {
+      // send your name
+      case '0':
+        myName = str.substring(1);
+        break;
+      // select person
+      case '1':
+        otherName = str.substring(1);
+        break;
+      // send msg
+      case '2':
+        sendMsg(myName, otherName, str.substring(1));
+        break;
+      default:
+        break;
+    }
+    
     return 0;
 }
 
 // send data to the TI 84 when the TI 84 requests for data
+// Get
 int onRequest(uint8_t type, enum Endpoint model, int* headerlen,
               int* datalen, data_callback* data_callback)
 {
@@ -65,10 +98,8 @@ int onRequest(uint8_t type, enum Endpoint model, int* headerlen,
     }
     
     // receive message
-//    String hello = Serial.readString();
-//    Serial.println(hello);
-    String hello = "hello world!";
-    int val = TIVar::stringToStrVar8x(hello, data, model);
+    String msg = getMsg(otherName, myName);
+    int val = TIVar::stringToStrVar8x(msg, data, model);
     if (val < 0) {
         return -1;
     }

@@ -46,4 +46,51 @@ app.post('/json', (req, res) => {
 app.put('/', (req, res) => {
     res.send('OK!')
 })
+
+// i'm lazy
+
+let names = []
+// {
+//   to
+//   from
+//   msg
+// }
+let messages = []
+
+app.get('/names', (req, res) => {
+    res.json({ names: names })
+})
+
+app.post('/names', (req, res) => {
+    names.push(req.body.name)
+    res.json({ names: names })
+})
+
+app.get('/d_msg', (req, res) => {
+    res.json(messages)
+})
+
+app.get('/messages', (req, res) => {
+    const from = req.query.from
+    const to = req.query.to
+    const filtered_msgs = messages.filter((message) => {
+        if (message.from === from && message.to === to) return message
+    })
+    let msgs = filtered_msgs
+    // const cutoff_length = 3
+    // if (msgs.length > cutoff_length)
+    //     msgs = filtered_msgs.slice(msgs.length - cutoff_length, msgs.length)
+    res.json(msgs[msgs.length - 1] || {})
+})
+
+app.post('/messages', (req, res) => {
+    const payload = {
+        from: req.body.from || 'Anon',
+        to: req.body.to || 'Anon',
+        msg: req.body.msg || '',
+    }
+    messages.push(payload)
+    res.json(payload)
+})
+
 app.listen(PORT, () => console.log('Running on port ', PORT))
